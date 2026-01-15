@@ -12,19 +12,31 @@ export default function TargetSelectionOverlay({ players, onSelectTarget, action
         )}
         <h2 className="text-2xl font-bold text-yellow-300 mb-8 animate-pulse">{actionText}</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-            {players.map(player => (
-                <button
-                    key={player.userId}
-                    onClick={() => onSelectTarget(player.userId)}
-                    className="flex flex-col items-center space-y-2 p-4 rounded-lg bg-gray-800 border-2 border-transparent hover:border-yellow-400 hover:bg-gray-700 transition-all transform hover:scale-105"
-                >
-                    <div className="w-16 h-16 bg-yellow-600 rounded-full flex items-center justify-center text-gray-900 font-bold text-2xl">
-                        {player.fullName[0]}
-                    </div>
-                    <span className="text-white font-semibold">{player.fullName}</span>
-                    <span className="text-green-400">HP: {player.health}</span>
-                </button>
-            ))}
+            {players.map(player => {
+                // Check if current player is a summoned minion and this target is their summoner
+                const isSummoner = currentPlayer?.summonedBy === player.userId;
+                const isDisabled = isSummoner;
+                
+                return (
+                    <button
+                        key={player.userId}
+                        onClick={() => !isDisabled && onSelectTarget(player.userId)}
+                        disabled={isDisabled}
+                        className={`flex flex-col items-center space-y-2 p-4 rounded-lg border-2 transition-all ${
+                            isDisabled 
+                                ? 'bg-gray-900 border-gray-700 opacity-50 cursor-not-allowed' 
+                                : 'bg-gray-800 border-transparent hover:border-yellow-400 hover:bg-gray-700 transform hover:scale-105'
+                        }`}
+                    >
+                        <div className="w-16 h-16 bg-yellow-600 rounded-full flex items-center justify-center text-gray-900 font-bold text-2xl">
+                            {player.fullName[0]}
+                        </div>
+                        <span className="text-white font-semibold">{player.fullName}</span>
+                        <span className="text-green-400">HP: {player.health}</span>
+                        {isSummoner && <span className="text-purple-400 text-xs">⛓️ Summoner</span>}
+                    </button>
+                );
+            })}
         </div>
     </div>
   );
