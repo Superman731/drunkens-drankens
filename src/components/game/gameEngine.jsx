@@ -535,6 +535,8 @@ export const applyGameAction = async (game, action) => {
                             target.isAlive = true;
                             target.health = roll;
                             target.summonedBy = playerId;
+                            target.hand = []; // Minions can't use cards from before death
+                            target.faceUpDiscards = []; // Clear discards too
                             gameLog.push(`${player.fullName} raises ${target.fullName} with ${roll} health!`);
                         }
                     }
