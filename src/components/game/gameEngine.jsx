@@ -321,24 +321,32 @@ export const applyGameAction = async (game, action) => {
                         // Ghosts cannot be targeted by Necromancer's effect
                         if (target?.ghostState?.active) {
                             gameLog.push(`Necromancer cannot target ${target.fullName} - they are in ghost form!`);
-                            // Re-add card to hand or move to discard without effect
-                            player.faceUpDiscards.pop(); // Remove from face up discards
-                            player.hand.push(card); // Return to hand
+                            player.faceUpDiscards.pop();
+                            player.hand.push(card);
                             break;
                         }
 
                         const damage = getHalfDamageRounded(roll);
-                        const actualDamage = Math.min(damage, target.health); // Damage cannot exceed target's current health
                         
-                        // Damage target first
-                        let result = processDamage(newGame.players, targetId, actualDamage, gameLog, 'Necromancer');
+                        // Get target health BEFORE damage
+                        const targetBefore = newGame.players.find(p => p.userId === targetId);
+                        const healthBefore = targetBefore.health;
+                        
+                        // Deal damage (may be blocked by Golem)
+                        let result = processDamage(newGame.players, targetId, damage, gameLog, 'Necromancer');
                         newGame.players = result.players;
                         gameLog = result.log;
                         
-                        // Then heal necromancer (capped at 20) for the actual damage dealt
-                        let healResult = processHealing(newGame.players, playerId, actualDamage, gameLog, false, 'stolen life');
-                        newGame.players = healResult.players;
-                        gameLog = healResult.log;
+                        // Check actual health damage dealt
+                        const targetAfter = newGame.players.find(p => p.userId === targetId);
+                        const actualHealthLost = healthBefore - targetAfter.health;
+                        
+                        // Only heal for actual health damage dealt (not Golem damage)
+                        if (actualHealthLost > 0) {
+                            let healResult = processHealing(newGame.players, playerId, actualHealthLost, gameLog, false, 'stolen life');
+                            newGame.players = healResult.players;
+                            gameLog = healResult.log;
+                        }
                     } else {
                         gameLog.push(`${player.fullName} played Necromancer, but no target was selected. Card discarded without effect.`);
                     }
@@ -410,30 +418,33 @@ export const applyGameAction = async (game, action) => {
                             break;
                         }
                         
-                        // Heal demon (can go past 20)
-                        let healResult = processHealing(newGame.players, playerId, roll, gameLog, true, 'demonic power');
-                        newGame.players = healResult.players;
-                        gameLog = healResult.log;
-                        
-                        // Damage target - check if golem absorbed
+                        // Get target health BEFORE damage
                         const targetBefore = newGame.players.find(p => p.userId === targetId);
-                        const targetHealthBefore = targetBefore.health;
-                        const hadGolem = targetBefore.golemHealth > 0;
+                        const healthBefore = targetBefore.health;
                         
+                        // Deal damage first (may be blocked by Golem)
                         let damageResult = processDamage(newGame.players, targetId, roll, gameLog, 'Demon');
                         newGame.players = damageResult.players;
                         gameLog = damageResult.log;
                         
-                        // Only transfer demon card if target actually took health damage (not absorbed by golem)
-                        const updatedTarget = newGame.players.find(p => p.userId === targetId);
-                        const targetTookDamage = updatedTarget.health < targetHealthBefore;
+                        // Check actual health damage dealt
+                        const targetAfter = newGame.players.find(p => p.userId === targetId);
+                        const actualHealthLost = healthBefore - targetAfter.health;
                         
-                        if (updatedTarget && updatedTarget.isAlive && targetTookDamage) {
-                            updatedTarget.hand.push(card);
+                        // Demon heals for actual health damage dealt (can go past 20)
+                        if (actualHealthLost > 0) {
+                            let healResult = processHealing(newGame.players, playerId, actualHealthLost, gameLog, true, 'demonic power');
+                            newGame.players = healResult.players;
+                            gameLog = healResult.log;
+                        }
+                        
+                        // Transfer demon card only if target took health damage
+                        if (targetAfter && targetAfter.isAlive && actualHealthLost > 0) {
+                            targetAfter.hand.push(card);
                             player.faceUpDiscards.pop();
-                            gameLog.push(`The Demon card transfers to ${updatedTarget.fullName}!`);
-                        } else if (hadGolem) {
-                            gameLog.push(`The Demon card cannot transfer - the Golem blocked it!`);
+                            gameLog.push(`The Demon card transfers to ${targetAfter.fullName}!`);
+                        } else if (actualHealthLost === 0) {
+                            gameLog.push(`The Demon's power was blocked - no transfer!`);
                         }
                     }
                     break;
