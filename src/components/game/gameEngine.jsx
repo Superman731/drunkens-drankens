@@ -415,18 +415,25 @@ export const applyGameAction = async (game, action) => {
                         newGame.players = healResult.players;
                         gameLog = healResult.log;
                         
-                        // Damage target
+                        // Damage target - check if golem absorbed
+                        const targetBefore = newGame.players.find(p => p.userId === targetId);
+                        const targetHealthBefore = targetBefore.health;
+                        const hadGolem = targetBefore.golemHealth > 0;
+                        
                         let damageResult = processDamage(newGame.players, targetId, roll, gameLog, 'Demon');
                         newGame.players = damageResult.players;
                         gameLog = damageResult.log;
                         
-                        // Transfer demon card to target
+                        // Only transfer demon card if target actually took health damage (not absorbed by golem)
                         const updatedTarget = newGame.players.find(p => p.userId === targetId);
-                        if (updatedTarget && updatedTarget.isAlive) {
+                        const targetTookDamage = updatedTarget.health < targetHealthBefore;
+                        
+                        if (updatedTarget && updatedTarget.isAlive && targetTookDamage) {
                             updatedTarget.hand.push(card);
-                            // Remove from face up discards since it transfers
                             player.faceUpDiscards.pop();
                             gameLog.push(`The Demon card transfers to ${updatedTarget.fullName}!`);
+                        } else if (hadGolem) {
+                            gameLog.push(`The Demon card cannot transfer - the Golem blocked it!`);
                         }
                     }
                     break;

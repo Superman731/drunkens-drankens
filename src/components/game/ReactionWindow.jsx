@@ -59,9 +59,8 @@ export default function ReactionWindow({ game, userPlayer, onGameAction, isActio
                 return game.rollResult?.outcome === 'Attack' && !game.redirectedByElf;
             }
 
-            if (card.id === 'paladin_heal_roll' && userPlayer.health >= 20) {
-                return false;
-            }
+            // Paladin can still be shown even at full health to avoid info leak
+            // The engine will handle the cap at 20 HP
             
             if (card.id === 'summoner_raise_dead') {
                 return game.players.some(p => !p.isAlive);
