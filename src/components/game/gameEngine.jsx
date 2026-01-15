@@ -511,6 +511,7 @@ export const applyGameAction = async (game, action) => {
                     if (!player.ghostState?.active) {
                         gameLog.push(`${player.fullName} becomes a ghost!`);
                         player.ghostState = { active: true, turnsRemaining: 999 };
+                        player.cursedByWitch = false; // Clear curse when entering ghost mode
                     } else {
                         // Exit ghost form, return to living WITHOUT taking damage
                         gameLog.push(`${player.fullName} returns to mortal form!`);
@@ -577,7 +578,7 @@ export const applyGameAction = async (game, action) => {
                     let updatedLog = gameLog;
                     
                     newGame.players.forEach(p => {
-                        if (p.userId !== playerId && p.isAlive) {
+                        if (p.userId !== playerId && p.isAlive && !p.isDisconnected) {
                             let result = processDamage(updatedPlayers, p.userId, halfDamage, updatedLog, 'Dragon AOE');
                             updatedPlayers = result.players;
                             updatedLog = result.log;
@@ -597,7 +598,7 @@ export const applyGameAction = async (game, action) => {
                     let updatedLog = gameLog;
                     
                     newGame.players.forEach(p => {
-                        if (p.userId !== playerId && p.isAlive) {
+                        if (p.userId !== playerId && p.isAlive && !p.isDisconnected) {
                             let result = processDamage(updatedPlayers, p.userId, roll, updatedLog, 'Giant AOE');
                             updatedPlayers = result.players;
                             updatedLog = result.log;
