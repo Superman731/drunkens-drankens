@@ -15,6 +15,11 @@ export default function ReactionWindow({ game, userPlayer, onGameAction, isActio
     };
 
     const handleSelectCard = (card) => {
+        // Block Elf if already redirected
+        if (card.id === 'elf_redirect_hh' && game.redirectedByElf) {
+            return; // Do nothing, button is disabled
+        }
+        
         // Special handling for Ghost exit choice
         if (card.id === 'ghost_tt_persist' && userPlayer.ghostState?.active) {
             // Show choice: stay ghost or return
@@ -56,7 +61,8 @@ export default function ReactionWindow({ game, userPlayer, onGameAction, isActio
             
             // Special card availability rules
             if (card.id === 'elf_redirect_hh') {
-                return game.rollResult?.outcome === 'Attack' && !game.redirectedByElf;
+                // Show card but it's not playable if already redirected
+                return game.rollResult?.outcome === 'Attack';
             }
 
             // Paladin can still be shown even at full health to avoid info leak
@@ -93,16 +99,16 @@ export default function ReactionWindow({ game, userPlayer, onGameAction, isActio
                                 }}
                                 className="w-full bg-purple-600 hover:bg-purple-700"
                             >
-                                Stay Ghost (Avoid {damage} damage)
+                                Stay Ghost (Take {damage} damage)
                             </Button>
                             <Button 
                                 onClick={() => {
                                     onGameAction({ type: 'PLAY_CARD', payload: { playerId: userPlayer.userId, cardId: 'ghost_tt_persist', targetId: null }});
                                     setCardToPlay(null);
                                 }}
-                                className="w-full bg-red-600 hover:bg-red-700"
+                                className="w-full bg-green-600 hover:bg-green-700"
                             >
-                                Return to Mortal (Take {damage} damage)
+                                Return to Mortal (Avoid damage)
                             </Button>
                         </div>
                     </div>
@@ -179,17 +185,22 @@ export default function ReactionWindow({ game, userPlayer, onGameAction, isActio
 
                 <div className="space-y-3">
                     {playableCards.length > 0 ? (
-                        playableCards.map(card => (
-                            <Button 
-                                key={card.id}
-                                disabled={isActionInProgress}
-                                className="w-full bg-purple-600 hover:bg-purple-700 justify-start p-3 h-auto flex-col items-start text-left"
-                                onClick={() => handleSelectCard(card)}
-                            >
-                                <div className="font-bold text-base">Play {card.name}</div>
-                                <div className="text-xs font-normal opacity-80 whitespace-normal break-words">{card.text}</div>
-                            </Button>
-                        ))
+                        playableCards.map(card => {
+                            const isElfBlocked = card.id === 'elf_redirect_hh' && game.redirectedByElf;
+                            return (
+                                <Button 
+                                    key={card.id}
+                                    disabled={isActionInProgress || isElfBlocked}
+                                    className={`w-full justify-start p-3 h-auto flex-col items-start text-left ${
+                                        isElfBlocked ? 'bg-gray-600 opacity-50 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'
+                                    }`}
+                                    onClick={() => handleSelectCard(card)}
+                                >
+                                    <div className="font-bold text-base">Play {card.name}</div>
+                                    <div className="text-xs font-normal opacity-80 whitespace-normal break-words">{card.text}</div>
+                                </Button>
+                            );
+                        })
                     ) : null}
                     
                     <Button 

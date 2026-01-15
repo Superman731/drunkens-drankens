@@ -41,8 +41,8 @@ const processDamage = (players, targetId, amount, gameLog, sourcePlayerName = 'a
     
     player.health -= amount;
     
-    // Summoned minion can't go below 1 HP on self-damage
-    if (player.summonedBy && sourcePlayerName.includes('self')) {
+    // Summoned minion can't go below 1 HP on TT self-damage ONLY (not card effects)
+    if (player.summonedBy && sourcePlayerName === 'self-inflicted') {
         player.health = Math.max(1, player.health);
         gameLog.push(`${player.fullName} (summoned) cannot die from self-damage, stays at 1 HP!`);
     } else {
@@ -61,6 +61,17 @@ const processDamage = (players, targetId, amount, gameLog, sourcePlayerName = 'a
         } else {
             player.isAlive = false;
             gameLog.push(`${player.fullName} has been eliminated!`);
+            
+            // Kill summoned minion immediately when summoner dies
+            if (player.isAlive === false) {
+                newPlayers.forEach(p => {
+                    if (p.summonedBy === player.userId && p.isAlive) {
+                        p.isAlive = false;
+                        p.health = 0;
+                        gameLog.push(`${p.fullName} dies as their summoner has fallen!`);
+                    }
+                });
+            }
         }
     }
     
@@ -501,19 +512,19 @@ export const applyGameAction = async (game, action) => {
                         gameLog.push(`${player.fullName} becomes a ghost!`);
                         player.ghostState = { active: true, turnsRemaining: 999 };
                     } else {
-                        // Exit ghost form and take damage
-                        gameLog.push(`${player.fullName} returns to mortal form and takes the damage.`);
+                        // Exit ghost form, return to living WITHOUT taking damage
+                        gameLog.push(`${player.fullName} returns to mortal form!`);
                         player.ghostState = { active: false, turnsRemaining: 0 };
-                        let result = processDamage(newGame.players, playerId, roll, gameLog, 'returning to life', true);
-                        newGame.players = result.players;
-                        gameLog = result.log;
                     }
                     break;
                 }
                 
                 case 'ghost_stay': {
-                    // Stay in ghost form, avoid damage
-                    gameLog.push(`${player.fullName} remains a ghost!`);
+                    // Stay in ghost form, take the TT damage
+                    gameLog.push(`${player.fullName} stays as a ghost and takes the damage!`);
+                    let result = processDamage(newGame.players, playerId, roll, gameLog, 'ghost penalty', true);
+                    newGame.players = result.players;
+                    gameLog = result.log;
                     break;
                 }
 
@@ -754,18 +765,6 @@ export const applyGameAction = async (game, action) => {
                 newGame.reactingPlayerId = null;
                 newGame.redirectedByElf = false;
                 newGame.summonerProtection = null;
-                
-                // Check if summoner died - kill their summoned minion
-                const deadPlayers = newGame.players.filter(p => !p.isAlive);
-                deadPlayers.forEach(dead => {
-                    newGame.players.forEach(p => {
-                        if (p.summonedBy === dead.userId && p.isAlive) {
-                            p.isAlive = false;
-                            p.health = 0;
-                            gameLog.push(`${p.fullName} dies as their summoner has fallen!`);
-                        }
-                    });
-                });
                 
                 gameLog.push(`${newGame.players[nextIndex].fullName}'s turn.`);
             }
