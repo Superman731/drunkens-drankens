@@ -65,6 +65,8 @@ export default function CardHand({ game, user, onPlayCard, isActionInProgress })
                 onSelectTarget={handleSelectTargetAndPlay}
                 actionText={`Play ${cardToPlay.name}: Select a target.`}
                 onCancel={() => setCardToPlay(null)}
+                currentPlayer={userPlayer}
+                game={game}
             />
         )
     }

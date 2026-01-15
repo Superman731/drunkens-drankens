@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 
-export default function TargetSelectionOverlay({ players, onSelectTarget, actionText, onCancel }) {
+export default function TargetSelectionOverlay({ players, onSelectTarget, actionText, onCancel, currentPlayer, game }) {
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center z-40 p-4">
         {onCancel && (

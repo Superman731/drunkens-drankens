@@ -104,6 +104,7 @@ export default function GameBoard({ game, user, onGameAction, isActionInProgress
                         isTargeted={player.userId === game.targetId && game.turnPhase === 'reaction'}
                         isAttacker={player.userId === game.attackerId && game.turnPhase === 'reaction'}
                         isGhost={player.ghostState?.active || false}
+                        game={game}
                     />
                 ))}
             </div>
@@ -168,6 +169,8 @@ export default function GameBoard({ game, user, onGameAction, isActionInProgress
                     players={game.players.filter(p => p.isAlive && p.userId !== user.id && !p.ghostState?.active)}
                     onSelectTarget={handleSelectTarget}
                     actionText={`Attack for ${game.rollResult?.die || 0} damage! Select a target.`}
+                    currentPlayer={currentPlayer}
+                    game={game}
                 />
             )}
         </div>

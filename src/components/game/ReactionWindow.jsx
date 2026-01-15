@@ -15,6 +15,13 @@ export default function ReactionWindow({ game, userPlayer, onGameAction, isActio
     };
 
     const handleSelectCard = (card) => {
+        // Special handling for Ghost exit choice
+        if (card.id === 'ghost_tt_persist' && userPlayer.ghostState?.active) {
+            // Show choice: stay ghost or return
+            setCardToPlay(card);
+            return;
+        }
+        
         // Cards that need target selection
         const needsTarget = [
             'warrior_steal_roll', 
@@ -72,6 +79,38 @@ export default function ReactionWindow({ game, userPlayer, onGameAction, isActio
     const playableCards = getPlayableCards();
     
     if (cardToPlay) {
+        // Special UI for Ghost exit choice
+        if (cardToPlay.id === 'ghost_tt_persist' && userPlayer.ghostState?.active) {
+            return (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+                    <div className="bg-gray-800 border-2 border-purple-800/50 rounded-lg p-6 max-w-md mx-4">
+                        <h3 className="text-2xl font-bold text-purple-400 text-center mb-4">👻 Ghost Choice</h3>
+                        <p className="text-gray-300 text-center mb-6">You rolled two tails. Stay in ghost form or return to mortal?</p>
+                        <div className="space-y-3">
+                            <Button 
+                                onClick={() => {
+                                    onGameAction({ type: 'PLAY_CARD', payload: { playerId: userPlayer.userId, cardId: 'ghost_stay', targetId: null }});
+                                    setCardToPlay(null);
+                                }}
+                                className="w-full bg-purple-600 hover:bg-purple-700"
+                            >
+                                Stay Ghost (Avoid {damage} damage)
+                            </Button>
+                            <Button 
+                                onClick={() => {
+                                    onGameAction({ type: 'PLAY_CARD', payload: { playerId: userPlayer.userId, cardId: 'ghost_tt_persist', targetId: null }});
+                                    setCardToPlay(null);
+                                }}
+                                className="w-full bg-red-600 hover:bg-red-700"
+                            >
+                                Return to Mortal (Take {damage} damage)
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        
         let eligibleTargets = [];
         
         if (cardToPlay.id === 'summoner_raise_dead') {
@@ -112,6 +151,8 @@ export default function ReactionWindow({ game, userPlayer, onGameAction, isActio
                 onSelectTarget={handleSelectTarget}
                 actionText={`Play ${cardToPlay.name}: Select a target.`}
                 onCancel={() => setCardToPlay(null)}
+                currentPlayer={userPlayer}
+                game={game}
             />
         );
     }
@@ -150,16 +191,14 @@ export default function ReactionWindow({ game, userPlayer, onGameAction, isActio
                                 <div className="text-xs font-normal opacity-80 whitespace-normal break-words">{card.text}</div>
                             </Button>
                         ))
-                    ) : (
-                        <p className="text-sm text-gray-400 text-center italic">No playable cards in hand.</p>
-                    )}
+                    ) : null}
                     
                     <Button 
                         onClick={handleDrinkAndPass}
                         disabled={isActionInProgress}
                         className="w-full bg-red-800 hover:bg-red-700 text-white font-bold"
                     >
-                        Drink {damage} & Pass
+                        {playableCards.length > 0 ? `Drink ${damage} & Pass` : `Take ${damage} Damage`}
                     </Button>
                 </div>
             </div>

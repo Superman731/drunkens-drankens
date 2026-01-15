@@ -1,4 +1,3 @@
-
 // --- HELPER FUNCTIONS ---
 
 const getHalfDamageRounded = (roll) => {
@@ -6,7 +5,7 @@ const getHalfDamageRounded = (roll) => {
     return evenedRoll / 2;
 };
 
-const processDamage = (players, targetId, amount, gameLog, sourcePlayerName = 'attack') => {
+const processDamage = (players, targetId, amount, gameLog, sourcePlayerName = 'attack', bypassGolem = false) => {
     const newPlayers = [...players];
     const playerIndex = newPlayers.findIndex(p => p.userId === targetId);
     if (playerIndex === -1 || amount <= 0) return { players: newPlayers, log: gameLog };
@@ -22,6 +21,21 @@ const processDamage = (players, targetId, amount, gameLog, sourcePlayerName = 'a
     // Ghosts cannot be attacked
     if (player.ghostState?.active) {
         gameLog.push(`${player.fullName} is in ghost form and cannot be attacked!`);
+        return { players: newPlayers, log: gameLog };
+    }
+    
+    // Check if player has Golem shield (unless bypassed by AOE or self-damage)
+    if (!bypassGolem && player.golemHealth && player.golemHealth > 0) {
+        player.golemHealth -= amount;
+        gameLog.push(`${player.fullName}'s Golem absorbs ${amount} damage!`);
+        
+        if (player.golemHealth <= 0) {
+            player.golemHealth = 0;
+            gameLog.push(`${player.fullName}'s Golem is destroyed!`);
+        } else {
+            gameLog.push(`Golem has ${player.golemHealth} health remaining.`);
+        }
+        newPlayers[playerIndex] = player;
         return { players: newPlayers, log: gameLog };
     }
     
@@ -343,11 +357,10 @@ export const applyGameAction = async (game, action) => {
 
                         gameLog.push(`${player.fullName} redirects the attack to ${redirectTarget.fullName}!`);
                         newGame.targetId = targetId;
-                        newGame.attackerId = newGame.attackerId; // Keep original attacker
                         newGame.redirectedByElf = true; // Prevent chain redirects
-                        let result = processDamage(newGame.players, targetId, roll, gameLog, 'redirected attack');
-                        newGame.players = result.players;
-                        gameLog = result.log;
+                        // Give redirected target a chance to react (they become the new reacting player)
+                        newGame.reactingPlayerId = targetId;
+                        newGame.turnPhase = 'reaction';
                     } else {
                         gameLog.push(`${player.fullName} played Elf, but conditions were not met. Card discarded.`);
                     }
@@ -470,12 +483,19 @@ export const applyGameAction = async (game, action) => {
                         gameLog.push(`${player.fullName} becomes a ghost!`);
                         player.ghostState = { active: true, turnsRemaining: 999 };
                     } else {
-                        gameLog.push(`${player.fullName} can choose to stay ghost or return. Returning to mortal form.`);
+                        // Exit ghost form and take damage
+                        gameLog.push(`${player.fullName} returns to mortal form and takes the damage.`);
                         player.ghostState = { active: false, turnsRemaining: 0 };
-                        let result = processDamage(newGame.players, playerId, roll, gameLog, 'returning to life');
+                        let result = processDamage(newGame.players, playerId, roll, gameLog, 'returning to life', true);
                         newGame.players = result.players;
                         gameLog = result.log;
                     }
+                    break;
+                }
+                
+                case 'ghost_stay': {
+                    // Stay in ghost form, avoid damage
+                    gameLog.push(`${player.fullName} remains a ghost!`);
                     break;
                 }
 
