@@ -594,11 +594,11 @@ export const applyGameAction = async (game, action) => {
                             player.faceUpDiscards.pop();
                             break;
                         }
-                        
+
                         gameLog.push(`${player.fullName} uses Unholy to attack on a Pass!`);
                         let result1 = processDamage(newGame.players, targetId, roll, gameLog, 'Unholy attack');
-                        let result2 = processDamage(result1.players, playerId, 2, result1.log, 'Unholy cost');
-                        
+                        let result2 = processDamage(result1.players, playerId, 2, result1.log, 'Unholy self-damage', true);
+
                         newGame.players = result2.players;
                         gameLog = result2.log;
                     }
