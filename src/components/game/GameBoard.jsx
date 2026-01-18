@@ -8,9 +8,12 @@ import GameLog from './GameLog';
 import ReactionWindow from './ReactionWindow';
 import GameOverScreen from './GameOverScreen';
 import TargetSelectionOverlay from './TargetSelectionOverlay';
+import GameStartAnimation from './GameStartAnimation';
 
 export default function GameBoard({ game, user, onGameAction, isActionInProgress }) {
     const [isRolling, setIsRolling] = useState(false);
+    const [showStartAnimation, setShowStartAnimation] = useState(true);
+    const [hasSeenCards, setHasSeenCards] = useState(false);
     
     const currentPlayer = game.players[game.currentPlayerIndex];
     const isCurrentPlayer = currentPlayer?.userId === user?.id;
@@ -19,6 +22,13 @@ export default function GameBoard({ game, user, onGameAction, isActionInProgress
 
     // Check if user is in ghost state
     const isGhost = userPlayer?.ghostState?.active || false;
+
+    // Show card reveal animation only once at game start
+    useEffect(() => {
+        if (game.status === 'in_progress' && !hasSeenCards && userPlayer?.hand?.length > 0) {
+            setShowStartAnimation(true);
+        }
+    }, [game.status, userPlayer?.hand, hasSeenCards]);
 
     const handleRoll = async () => {
         if (!isCurrentPlayer || isRolling || isActionInProgress) return;
@@ -67,6 +77,19 @@ export default function GameBoard({ game, user, onGameAction, isActionInProgress
     
     if (game.status === 'finished') {
         return <GameOverScreen winner={game.winner} />;
+    }
+
+    // Show start animation
+    if (showStartAnimation && !hasSeenCards && userPlayer?.hand?.length > 0) {
+        return (
+            <GameStartAnimation 
+                playerCards={userPlayer.hand}
+                onComplete={() => {
+                    setShowStartAnimation(false);
+                    setHasSeenCards(true);
+                }}
+            />
+        );
     }
 
     const showTargetSelection = game.turnPhase === 'target_selection' && isCurrentPlayer;
