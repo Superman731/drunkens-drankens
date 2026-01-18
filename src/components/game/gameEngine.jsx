@@ -458,16 +458,16 @@ export const applyGameAction = async (game, action) => {
                 }
 
                 case 'knight_half_damage_even_up': {
-                    const damage = Math.ceil(roll / 2);
-                    let result = processDamage(newGame.players, playerId, damage, gameLog, 'Knight (reduced)');
+                    const damage = roll % 2 !== 0 ? roll + 1 : roll;
+                    let result = processDamage(newGame.players, playerId, damage, gameLog, 'Knight (evened up)');
                     newGame.players = result.players;
                     gameLog = result.log;
                     break;
                 }
 
                 case 'griffon_half_damage_evenup': {
-                    const damage = Math.ceil(roll / 2);
-                    let result = processDamage(newGame.players, playerId, damage, gameLog, 'Griffon (reduced)');
+                    const damage = roll % 2 !== 0 ? roll + 1 : roll;
+                    let result = processDamage(newGame.players, playerId, damage, gameLog, 'Griffon (evened up)');
                     newGame.players = result.players;
                     gameLog = result.log;
                     break;
