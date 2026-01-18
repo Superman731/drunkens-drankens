@@ -79,9 +79,9 @@ export default function CardHand({ game, user, onPlayCard, isActionInProgress })
             </h3>
             
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {userPlayer.hand.map((card) => (
+                {userPlayer.hand.map((card, index) => (
                     <Card 
-                        key={card.id}
+                        key={card.uniqueId || `${card.id}_${index}`}
                         card={card}
                         onPlayCard={() => handleSelectCard(card)}
                         isPlayable={isCardPlayable(card)}

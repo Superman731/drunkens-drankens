@@ -93,7 +93,7 @@ export default function GameStartAnimation({ playerCards, onComplete }) {
 
                                             {/* Card Front */}
                                             <motion.div
-                                                className={`absolute inset-0 border-4 rounded-xl p-4 flex flex-col justify-between shadow-2xl ${
+                                                className={`absolute inset-0 border-4 rounded-xl p-4 flex flex-col items-center justify-center shadow-2xl ${
                                                     card.type === 'Black' 
                                                         ? 'border-yellow-400 bg-gray-900' 
                                                         : card.deck === 'red' 
@@ -105,12 +105,15 @@ export default function GameStartAnimation({ playerCards, onComplete }) {
                                                     transform: stage === 'reveal' ? 'rotateY(0deg)' : 'rotateY(-180deg)'
                                                 }}
                                             >
-                                                <div>
-                                                    <h4 className="font-bold text-xl text-white mb-3">{card.name}</h4>
-                                                    <p className="text-xs text-gray-300">{card.text}</p>
+                                                {/* Placeholder art */}
+                                                <div className="w-32 h-32 bg-black/30 rounded-lg mb-4 flex items-center justify-center">
+                                                    <span className="text-5xl">
+                                                        {card.deck === 'red' ? '⚔️' : '🛡️'}
+                                                    </span>
                                                 </div>
-                                                <div className="text-xs text-gray-400 uppercase">
-                                                    {card.deck} • {card.expansion}
+                                                <h4 className="font-bold text-2xl text-white text-center">{card.name}</h4>
+                                                <div className="text-xs text-gray-400 uppercase mt-2">
+                                                    {card.deck} • {card.type === 'Black' ? '⭐ RARE' : 'Regular'}
                                                 </div>
                                             </motion.div>
                                         </div>
