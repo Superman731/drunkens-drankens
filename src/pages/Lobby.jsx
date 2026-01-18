@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Game } from '@/entities/Game';
 import { User } from '@/entities/User';
@@ -32,8 +31,18 @@ export default function LobbyPage() {
       try {
         const currentUser = await User.me();
         setUser(currentUser);
+        
+        // Fetch waiting games AND games user is part of
         const waitingGames = await Game.filter({ status: 'waiting' }, '-created_date', 50);
-        setGames(waitingGames);
+        const allGames = await Game.filter({}, '-created_date', 100);
+        
+        // Include in-progress games where user is a player
+        const userInProgressGames = allGames.filter(g => 
+          g.status === 'in_progress' && 
+          g.players.some(p => p.userId === currentUser.id)
+        );
+        
+        setGames([...userInProgressGames, ...waitingGames]);
       } catch (error) {
         console.error("Error fetching data:", error);
         // Not logged in, redirect
