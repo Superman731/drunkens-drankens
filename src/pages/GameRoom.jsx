@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Game } from '@/entities/Game';
 import { User } from '@/entities/User';
@@ -232,6 +231,9 @@ export default function GameRoomPage() {
 
     const handleLeaveGame = async () => {
         if (!game || !user) return;
+        
+        const confirmed = window.confirm("Are you sure you want to leave the game?");
+        if (!confirmed) return;
         
         try {
             if (game.hostId === user.id) {
