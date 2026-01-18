@@ -73,14 +73,11 @@ export default function GameRoomPage() {
 
                 // --- Disconnection Logic ---
                 const now = Date.now();
-                // Check if the game state itself was updated recently (e.g., within the last 20 seconds)
-                // This helps differentiate between genuine disconnections and just a paused game state
-                const gameUpdatedRecently = new Date(updatedGame.lastActionTimestamp).getTime() > now - 20000;
                 let needsUpdate = false;
 
                 const updatedPlayers = updatedGame.players.map(p => {
-                    // Mark other players as disconnected if their lastSeen is old AND the game wasn't recently active
-                    const isDisconnected = p.userId !== user?.id && p.lastSeen && (now - p.lastSeen > 15000) && !gameUpdatedRecently;
+                    // Mark players as disconnected if lastSeen > 3 minutes (180000ms)
+                    const isDisconnected = p.userId !== user?.id && p.lastSeen && (now - p.lastSeen > 180000);
                     
                     if (p.isDisconnected !== isDisconnected) {
                         needsUpdate = true;

@@ -149,15 +149,18 @@ export default function GameBoard({ game, user, onGameAction, isActionInProgress
                         />
 
                         {showEndTurnButton && (
-                            <div className="mt-4 text-center">
-                                <Button
-                                    onClick={handleEndTurn}
-                                    disabled={isActionInProgress}
-                                    size="lg"
-                                    className="bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-4"
-                                >
-                                    End Turn
-                                </Button>
+                            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-40">
+                                <div className="bg-gray-800 border-4 border-green-500 rounded-xl p-8 text-center animate-pulse">
+                                    <h3 className="text-3xl font-bold text-green-400 mb-4">Your Turn Is Complete!</h3>
+                                    <Button
+                                        onClick={handleEndTurn}
+                                        disabled={isActionInProgress}
+                                        size="lg"
+                                        className="bg-green-600 hover:bg-green-700 text-white font-bold px-12 py-6 text-xl"
+                                    >
+                                        End Turn
+                                    </Button>
+                                </div>
                             </div>
                         )}
                     </div>

@@ -8,7 +8,7 @@ export default function GameLog({ log }) {
 
     useEffect(() => {
         if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+            scrollRef.current.scrollTop = 0;
         }
     }, [log]);
 
@@ -27,10 +27,10 @@ export default function GameLog({ log }) {
                         <p className="text-gray-500 text-sm italic">Game starting...</p>
                     ) : (
                         <div className="space-y-2">
-                            {log.map((entry, index) => (
+                            {[...log].reverse().map((entry, index) => (
                                 <motion.div
-                                    key={index}
-                                    initial={{ opacity: 0, y: 10 }}
+                                    key={log.length - 1 - index}
+                                    initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     className="text-sm text-gray-300 p-2 bg-gray-700/30 rounded border-l-2 border-yellow-600/50"
                                 >

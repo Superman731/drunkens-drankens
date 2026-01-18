@@ -50,28 +50,26 @@ const processDamage = (players, targetId, amount, gameLog, sourcePlayerName = 'a
     }
 
     if (player.health <= 0) {
-        player.health = 0;
         const phoenixCardIndex = player.hand?.findIndex(c => c.id === 'phoenix_revive_8hp') ?? -1;
-        
+
         if (phoenixCardIndex > -1) {
             player.health = 8;
             gameLog.push(`${player.fullName} rises from the ashes with 8 health!`);
             const phoenixCard = player.hand.splice(phoenixCardIndex, 1)[0];
             player.faceUpDiscards = [...(player.faceUpDiscards || []), phoenixCard];
         } else {
+            player.health = 0;
             player.isAlive = false;
             gameLog.push(`${player.fullName} has been eliminated!`);
-            
+
             // Kill summoned minion immediately when summoner dies
-            if (player.isAlive === false) {
-                newPlayers.forEach(p => {
-                    if (p.summonedBy === player.userId && p.isAlive) {
-                        p.isAlive = false;
-                        p.health = 0;
-                        gameLog.push(`${p.fullName} dies as their summoner has fallen!`);
-                    }
-                });
-            }
+            newPlayers.forEach(p => {
+                if (p.summonedBy === player.userId && p.isAlive) {
+                    p.isAlive = false;
+                    p.health = 0;
+                    gameLog.push(`${p.fullName} dies as their summoner has fallen!`);
+                }
+            });
         }
     }
     
@@ -111,27 +109,25 @@ export const applyGameAction = async (game, action) => {
     const currentPlayer = newGame.players[newGame.currentPlayerIndex];
     const getPlayer = (id) => newGame.players.find(p => p.userId === id);
 
-    // Auto-play logic for disconnected players
+    // Auto-play logic for disconnected players (only if actually disconnected, not just inactive)
     const handleAutoPlay = () => {
-        gameLog.push(`${currentPlayer.fullName} is disconnected. Auto-playing turn.`);
+        gameLog.push(`${currentPlayer.fullName} is inactive. Auto-playing turn.`);
         const rollResult = newGame.rollResult;
-        
-        if (!rollResult) { // This shouldn't happen if called after ROLL_DICE, but a safeguard
-            gameLog.push(`No roll result for disconnected player. Passing turn.`);
+
+        if (!rollResult) {
+            gameLog.push(`No roll result for inactive player. Passing turn.`);
             newGame.turnPhase = 'finished_turn';
             return;
         }
 
         if (rollResult.outcome === 'Self-Hit') {
-            const { players, log } = processDamage(newGame.players, currentPlayer.userId, rollResult.die, gameLog, 'auto-play');
+            const { players, log } = processDamage(newGame.players, currentPlayer.userId, rollResult.die, gameLog, 'self-inflicted');
             newGame.players = players;
             gameLog = log;
-            gameLog.push(`${currentPlayer.fullName} automatically takes ${rollResult.die} damage.`);
             newGame.turnPhase = 'finished_turn';
         } else if (rollResult.outcome === 'Attack') {
             const potentialTargets = newGame.players.filter(p => p.isAlive && p.userId !== currentPlayer.userId && !p.isDisconnected && !p.ghostState?.active);
             if (potentialTargets.length > 0) {
-                // Target highest health player among non-disconnected, non-ghost, alive players
                 const target = potentialTargets.reduce((prev, curr) => curr.health > prev.health ? curr : prev);
                 newGame.targetId = target.userId;
                 newGame.attackerId = currentPlayer.userId;
@@ -142,7 +138,7 @@ export const applyGameAction = async (game, action) => {
                 gameLog.push(`No valid targets for ${currentPlayer.fullName}. Passing turn.`);
                 newGame.turnPhase = 'finished_turn';
             }
-        } else { // Pass
+        } else {
             gameLog.push(`${currentPlayer.fullName} automatically passes.`);
             newGame.turnPhase = 'finished_turn';
         }
@@ -462,7 +458,7 @@ export const applyGameAction = async (game, action) => {
                 }
 
                 case 'knight_half_damage_even_up': {
-                    const damage = getHalfDamageRounded(roll);
+                    const damage = Math.ceil(roll / 2);
                     let result = processDamage(newGame.players, playerId, damage, gameLog, 'Knight (reduced)');
                     newGame.players = result.players;
                     gameLog = result.log;
@@ -470,7 +466,7 @@ export const applyGameAction = async (game, action) => {
                 }
 
                 case 'griffon_half_damage_evenup': {
-                    const damage = getHalfDamageRounded(roll);
+                    const damage = Math.ceil(roll / 2);
                     let result = processDamage(newGame.players, playerId, damage, gameLog, 'Griffon (reduced)');
                     newGame.players = result.players;
                     gameLog = result.log;
