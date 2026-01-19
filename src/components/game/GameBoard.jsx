@@ -23,12 +23,13 @@ export default function GameBoard({ game, user, onGameAction, isActionInProgress
     // Check if user is in ghost state
     const isGhost = userPlayer?.ghostState?.active || false;
 
-    // Show card reveal animation only once at game start
+    // Show card reveal animation only on fresh game start (turn 1)
     useEffect(() => {
-        if (game.status === 'in_progress' && !hasSeenCards && userPlayer?.hand?.length > 0) {
+        const isGameJustStarted = game.gameLog?.length <= 2 && game.status === 'in_progress';
+        if (isGameJustStarted && !hasSeenCards && userPlayer?.hand?.length > 0) {
             setShowStartAnimation(true);
         }
-    }, [game.status, userPlayer?.hand, hasSeenCards]);
+    }, [game.status, userPlayer?.hand, hasSeenCards, game.gameLog]);
 
     const handleRoll = async () => {
         if (!isCurrentPlayer || isRolling || isActionInProgress) return;

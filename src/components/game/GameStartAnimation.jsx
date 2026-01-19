@@ -107,12 +107,12 @@ export default function GameStartAnimation({ playerCards, onComplete }) {
                                             >
                                                 {/* Placeholder art */}
                                                 <div className="w-32 h-32 bg-black/30 rounded-lg mb-4 flex items-center justify-center">
-                                                    <span className="text-5xl">
+                                                    <span className="text-5xl" style={{ transform: 'scaleX(-1)' }}>
                                                         {card.deck === 'red' ? '⚔️' : '🛡️'}
                                                     </span>
                                                 </div>
-                                                <h4 className="font-bold text-2xl text-white text-center">{card.name}</h4>
-                                                <div className="text-xs text-gray-400 uppercase mt-2">
+                                                <h4 className="font-bold text-2xl text-white text-center" style={{ transform: 'scaleX(-1)' }}>{card.name}</h4>
+                                                <div className="text-xs text-gray-400 uppercase mt-2" style={{ transform: 'scaleX(-1)' }}>
                                                     {card.deck} • {card.type === 'Black' ? '⭐ RARE' : 'Regular'}
                                                 </div>
                                             </motion.div>

@@ -249,35 +249,31 @@ export default function GameRoomPage() {
                 // A non-host player is leaving.
                 const leavingPlayer = game.players.find(p => p.userId === user.id);
                 const updatedPlayers = game.players.filter(p => p.userId !== user.id);
+
+                // If all players leave, delete the game
+                if (updatedPlayers.length === 0) {
+                    await Game.delete(gameId);
+                    navigate(createPageUrl('Lobby'));
+                    return;
+                }
+
                 const updates = { 
                     players: updatedPlayers, 
                     gameLog: [...game.gameLog, `${leavingPlayer?.fullName || 'A player'} has left the game.`] 
                 };
-                
+
                 // If the leaving player was the current player during an active game, advance the turn.
                 if (game.status === 'in_progress' && game.players[game.currentPlayerIndex]?.userId === user.id) {
-                    const originalPlayerCount = game.players.length;
                     let nextIndex = game.currentPlayerIndex % updatedPlayers.length;
-
-                    // Find the next alive player from the new list
-                    // Note: 'isAlive' property is not defined on player objects in current context,
-                    // so this loop will iterate through all elements if 'isAlive' is always undefined.
                     let i = 0;
                     while (updatedPlayers.length > 0 && !updatedPlayers[nextIndex]?.isAlive && i < updatedPlayers.length) {
                         nextIndex = (nextIndex + 1) % updatedPlayers.length;
                         i++;
                     }
 
-                    // If all players leave, the game should effectively end
-                    if (updatedPlayers.length === 0) {
-                        updates.status = 'finished';
-                        updates.gameLog.push('All players have left. Game ended.');
-                        updates.winner = { userId: 'aborted', fullName: 'Game Aborted - No Players' };
-                    } else {
-                        updates.currentPlayerIndex = nextIndex;
-                        updates.turnPhase = 'rolling'; // Reset turn for the new player
-                        updates.gameLog.push(`Turn passed to ${updatedPlayers[nextIndex]?.fullName}.`);
-                    }
+                    updates.currentPlayerIndex = nextIndex;
+                    updates.turnPhase = 'rolling';
+                    updates.gameLog.push(`Turn passed to ${updatedPlayers[nextIndex]?.fullName}.`);
                 }
 
                 await Game.update(gameId, updates);

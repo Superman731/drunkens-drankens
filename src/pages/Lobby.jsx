@@ -36,13 +36,25 @@ export default function LobbyPage() {
         const waitingGames = await Game.filter({ status: 'waiting' }, '-created_date', 50);
         const allGames = await Game.filter({}, '-created_date', 100);
         
-        // Include in-progress games where user is a player
+        // Expire old games (20+ minutes inactive)
+        const now = Date.now();
+        const expiredGames = allGames.filter(g => {
+          const lastAction = new Date(g.lastActionTimestamp || g.created_date).getTime();
+          return now - lastAction > 1200000; // 20 minutes
+        });
+        
+        for (const expiredGame of expiredGames) {
+          await Game.delete(expiredGame.id);
+        }
+        
+        // Include in-progress games where user is a player (not expired)
         const userInProgressGames = allGames.filter(g => 
           g.status === 'in_progress' && 
-          g.players.some(p => p.userId === currentUser.id)
+          g.players.some(p => p.userId === currentUser.id) &&
+          !expiredGames.find(eg => eg.id === g.id)
         );
         
-        setGames([...userInProgressGames, ...waitingGames]);
+        setGames([...userInProgressGames, ...waitingGames.filter(g => !expiredGames.find(eg => eg.id === g.id))]);
       } catch (error) {
         console.error("Error fetching data:", error);
         // Not logged in, redirect
