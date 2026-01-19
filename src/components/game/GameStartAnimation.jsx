@@ -85,7 +85,7 @@ export default function GameStartAnimation({ playerCards, onComplete }) {
                                                 className="absolute inset-0 bg-gradient-to-br from-yellow-900 via-yellow-700 to-yellow-600 border-4 border-yellow-400 rounded-xl flex items-center justify-center shadow-2xl"
                                                 style={{ 
                                                     backfaceVisibility: 'hidden',
-                                                    transform: stage === 'reveal' ? 'rotateY(180deg)' : 'rotateY(0deg)'
+                                                    transform: 'rotateY(0deg)'
                                                 }}
                                             >
                                                 <div className="text-6xl">🃏</div>
@@ -102,17 +102,17 @@ export default function GameStartAnimation({ playerCards, onComplete }) {
                                                 }`}
                                                 style={{ 
                                                     backfaceVisibility: 'hidden',
-                                                    transform: stage === 'reveal' ? 'rotateY(0deg)' : 'rotateY(-180deg)'
+                                                    transform: 'rotateY(180deg)'
                                                 }}
                                             >
                                                 {/* Placeholder art */}
                                                 <div className="w-32 h-32 bg-black/30 rounded-lg mb-4 flex items-center justify-center">
-                                                    <span className="text-5xl" style={{ transform: 'scaleX(-1)' }}>
+                                                    <span className="text-5xl">
                                                         {card.deck === 'red' ? '⚔️' : '🛡️'}
                                                     </span>
                                                 </div>
-                                                <h4 className="font-bold text-2xl text-white text-center" style={{ transform: 'scaleX(-1)' }}>{card.name}</h4>
-                                                <div className="text-xs text-gray-400 uppercase mt-2" style={{ transform: 'scaleX(-1)' }}>
+                                                <h4 className="font-bold text-2xl text-white text-center">{card.name}</h4>
+                                                <div className="text-xs text-gray-400 uppercase mt-2">
                                                     {card.deck} • {card.type === 'Black' ? '⭐ RARE' : 'Regular'}
                                                 </div>
                                             </motion.div>
