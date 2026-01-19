@@ -12,8 +12,7 @@ import GameStartAnimation from './GameStartAnimation';
 
 export default function GameBoard({ game, user, onGameAction, isActionInProgress }) {
     const [isRolling, setIsRolling] = useState(false);
-    const [showStartAnimation, setShowStartAnimation] = useState(true);
-    const [hasSeenCards, setHasSeenCards] = useState(false);
+    const [showStartAnimation, setShowStartAnimation] = useState(false);
     
     const currentPlayer = game.players[game.currentPlayerIndex];
     const isCurrentPlayer = currentPlayer?.userId === user?.id;
@@ -23,13 +22,17 @@ export default function GameBoard({ game, user, onGameAction, isActionInProgress
     // Check if user is in ghost state
     const isGhost = userPlayer?.ghostState?.active || false;
 
-    // Show card reveal animation only on fresh game start (turn 1)
+    // Show card reveal animation only on fresh game start (turn 1) and only once per game
     useEffect(() => {
+        const animationKey = `seen_cards_${game.id}`;
+        const hasSeenBefore = localStorage.getItem(animationKey);
         const isGameJustStarted = game.gameLog?.length <= 2 && game.status === 'in_progress';
-        if (isGameJustStarted && !hasSeenCards && userPlayer?.hand?.length > 0) {
+        
+        if (isGameJustStarted && !hasSeenBefore && userPlayer?.hand?.length > 0) {
             setShowStartAnimation(true);
+            localStorage.setItem(animationKey, 'true');
         }
-    }, [game.status, userPlayer?.hand, hasSeenCards, game.gameLog]);
+    }, [game.id, game.status, userPlayer?.hand, game.gameLog]);
 
     const handleRoll = async () => {
         if (!isCurrentPlayer || isRolling || isActionInProgress) return;
@@ -81,14 +84,11 @@ export default function GameBoard({ game, user, onGameAction, isActionInProgress
     }
 
     // Show start animation
-    if (showStartAnimation && !hasSeenCards && userPlayer?.hand?.length > 0) {
+    if (showStartAnimation && userPlayer?.hand?.length > 0) {
         return (
             <GameStartAnimation 
                 playerCards={userPlayer.hand}
-                onComplete={() => {
-                    setShowStartAnimation(false);
-                    setHasSeenCards(true);
-                }}
+                onComplete={() => setShowStartAnimation(false)}
             />
         );
     }
