@@ -76,46 +76,47 @@ export default function GameStartAnimation({ playerCards, onComplete }) {
                                             duration: 0.8,
                                             type: "spring"
                                         }}
-                                        className="relative"
-                                        style={{ transformStyle: 'preserve-3d' }}
+                                        style={{ 
+                                            transformStyle: 'preserve-3d',
+                                            width: '192px',
+                                            height: '288px'
+                                        }}
                                     >
-                                        <div className="relative w-48 h-72">
-                                            {/* Card Back */}
-                                            <motion.div
-                                                className="absolute inset-0 bg-gradient-to-br from-yellow-900 via-yellow-700 to-yellow-600 border-4 border-yellow-400 rounded-xl flex items-center justify-center shadow-2xl"
-                                                style={{ 
-                                                    backfaceVisibility: 'hidden',
-                                                    transform: 'rotateY(0deg)'
-                                                }}
-                                            >
-                                                <div className="text-6xl">🃏</div>
-                                            </motion.div>
+                                        {/* Card Back */}
+                                        <div
+                                            className="absolute inset-0 bg-gradient-to-br from-yellow-900 via-yellow-700 to-yellow-600 border-4 border-yellow-400 rounded-xl flex items-center justify-center shadow-2xl"
+                                            style={{ 
+                                                backfaceVisibility: 'hidden',
+                                                transform: 'rotateY(0deg)'
+                                            }}
+                                        >
+                                            <div className="text-6xl">🃏</div>
+                                        </div>
 
-                                            {/* Card Front */}
-                                            <motion.div
-                                                className={`absolute inset-0 border-4 rounded-xl p-4 flex flex-col items-center justify-center shadow-2xl ${
-                                                    card.type === 'Black' 
-                                                        ? 'border-yellow-400 bg-gray-900' 
-                                                        : card.deck === 'red' 
-                                                            ? 'border-red-600 bg-red-900/20' 
-                                                            : 'border-blue-600 bg-blue-900/20'
-                                                }`}
-                                                style={{ 
-                                                    backfaceVisibility: 'hidden',
-                                                    transform: 'rotateY(180deg)'
-                                                }}
-                                            >
-                                                {/* Placeholder art */}
-                                                <div className="w-32 h-32 bg-black/30 rounded-lg mb-4 flex items-center justify-center">
-                                                    <span className="text-5xl">
-                                                        {card.deck === 'red' ? '⚔️' : '🛡️'}
-                                                    </span>
-                                                </div>
-                                                <h4 className="font-bold text-2xl text-white text-center">{card.name}</h4>
-                                                <div className="text-xs text-gray-400 uppercase mt-2">
-                                                    {card.deck} • {card.type === 'Black' ? '⭐ RARE' : 'Regular'}
-                                                </div>
-                                            </motion.div>
+                                        {/* Card Front */}
+                                        <div
+                                            className={`absolute inset-0 border-4 rounded-xl p-4 flex flex-col items-center justify-center shadow-2xl ${
+                                                card.type === 'Black' 
+                                                    ? 'border-yellow-400 bg-gray-900' 
+                                                    : card.deck === 'red' 
+                                                        ? 'border-red-600 bg-red-900/20' 
+                                                        : 'border-blue-600 bg-blue-900/20'
+                                            }`}
+                                            style={{ 
+                                                backfaceVisibility: 'hidden',
+                                                transform: 'rotateY(180deg)'
+                                            }}
+                                        >
+                                            {/* Placeholder art */}
+                                            <div className="w-32 h-32 bg-black/30 rounded-lg mb-4 flex items-center justify-center">
+                                                <span className="text-5xl">
+                                                    {card.deck === 'red' ? '⚔️' : '🛡️'}
+                                                </span>
+                                            </div>
+                                            <h4 className="font-bold text-2xl text-white text-center">{card.name}</h4>
+                                            <div className="text-xs text-gray-400 uppercase mt-2">
+                                                {card.deck} • {card.type === 'Black' ? '⭐ RARE' : 'Regular'}
+                                            </div>
                                         </div>
                                     </motion.div>
                                 ))}
